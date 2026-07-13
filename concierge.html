@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lounge & Restaurant Portal</title>
+
+    <!-- 1. STYLES: Paste the CSS inside the head tag -->
+    <style>
+        /* Container Frame */
+        .concierge-card {
+            max-width: 450px;
+            margin: 20px auto;
+            padding: 24px;
+            background: #ffffff;
+            border: 1px solid #e5e5e5;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        /* Header & Table Field */
+        .concierge-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .concierge-header h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+        .table-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f5f5f5;
+            padding: 6px 12px;
+            border-radius: 4px;
+        }
+        .table-selector label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .table-selector input {
+            width: 45px;
+            border: none;
+            background: transparent;
+            font-size: 1rem;
+            font-weight: bold;
+            text-align: center;
+        }
+        .table-selector input:focus {
+            outline: none;
+        }
+
+        /* Section Typo & Dividers */
+        .concierge-section h3 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+            margin: 0 0 16px 0;
+        }
+        .divider {
+            border: 0;
+            border-top: 1px solid #eee;
+            margin: 24px 0;
+        }
+
+        /* Main Buttons (Call Waiter & Bill) */
+        .concierge-btn {
+            width: 100%;
+            padding: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: background 0.2s ease;
+        }
+        .action-call {
+            background: #000000;
+            color: #ffffff;
+        }
+        .action-call:active {
+            background: #222222;
+        }
+
+        /* Quick Refill Layout Matrix */
+        .refill-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .refill-btn {
+            background: #fafafa;
+            border: 1px solid #e5e5e5;
+            border-radius: 4px;
+            padding: 14px 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        .refill-btn span {
+            font-size: 1.3rem;
+        }
+        .refill-btn:active {
+            background: #f0f0f0;
+            border-color: #000;
+        }
+
+        /* Bill Request Block */
+        .bill-control {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .concierge-select {
+            width: 100%;
+            padding: 14px;
+            font-size: 0.95rem;
+            border: 1px solid #e5e5e5;
+            border-radius: 4px;
+            background: #ffffff;
+            appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'><path d='M0 3l5 5 5-5z' fill='%23666'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+        }
+        .action-bill {
+            background: #f5f5f5;
+            color: #000000;
+            border: 1px solid #d5d5d5;
+        }
+        .action-bill:active {
+            background: #e5e5e5;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- YOUR EXISTING CONTENT HERE (Hero, Menu items, etc.) -->
+
+
+    <!-- 2. STRUCTURE: Place the HTML elements where you want them to appear on the page -->
+    <div class="concierge-card">
+        <div class="concierge-header">
+            <h2>Digital Concierge</h2>
+            <div class="table-selector">
+                <label for="tableNumber">Table No.</label>
+                <input type="number" id="tableNumber" value="4" min="1" max="50">
+            </div>
+        </div>
+
+        <button class="concierge-btn action-call" onclick="triggerConcierge('waiter')">
+            <span class="icon">🔔</span> Call Waiter
+        </button>
+
+        <hr class="divider">
+
+        <div class="concierge-section">
+            <h3>Quick Refill Requests</h3>
+            <div class="refill-grid">
+                <button class="refill-btn" onclick="triggerConcierge('refill', 'Request More Ice')">
+                    <span>🧊</span> Ice
+                </button>
+                <button class="refill-btn" onclick="triggerConcierge('refill', 'Extra Glasses')">
+                    <span>🥛</span> Glasses
+                </button>
+                <button class="refill-btn" onclick="triggerConcierge('refill', 'More Awaze & Mitmita')">
+                    <span>🌶️</span> Awaze
+                </button>
+            </div>
+        </div>
+
+        <hr class="divider">
+
+        <div class="concierge-section">
+            <h3>Request the Bill</h3>
+            <div class="bill-control">
+                <select id="paymentMethod" class="concierge-select">
+                    <option value="Cash">Pay with Cash</option>
+                    <option value="Telebirr">Pay with Telebirr</option>
+                    <option value="Card">Pay with Card</option>
+                </select>
+                <button class="concierge-btn action-bill" onclick="triggerConcierge('bill')">
+                    <span>🧾</span> Ask for Check
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 3. LOGIC: Place the script at the very bottom right before the closing body tag -->
+    <script>
+        const MANAGER_PHONE = "251911089416"; 
+
+        function triggerConcierge(type, customDetail = '') {
+            const tableNum = document.getElementById('tableNumber').value || "X";
+            let textMessage = "";
+
+            switch(type) {
+                case 'waiter':
+                    textMessage = `🔔 Assistance requested at Table #${tableNum}.`;
+                    break;
+                case 'refill':
+                    textMessage = `🧊 Refill Request from Table #${tableNum}: "${customDetail}".`;
+                    break;
+                case 'bill':
+                    const payment = document.getElementById('paymentMethod').value;
+                    textMessage = `🧾 Request the Bill from Table #${tableNum}. Payment method selected: ${payment}.`;
+                    break;
+                default:
+                    return;
+            }
+
+            const encodedPayload = encodeURIComponent(textMessage);
+            const targetUrl = `https://wa.me/${MANAGER_PHONE}?text=${encodedPayload}`;
+            window.open(targetUrl, '_blank');
+        }
+    </script>
+
+</body>
+</html>

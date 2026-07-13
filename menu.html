@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yonas Chercher | Interactive Menu & Live Order</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f0f11;
+            --bg-card: #18181c;
+            --bg-elevated: #222228;
+            --accent-gold: #d4af37;
+            --accent-fire: #8b0000;
+            --accent-telebirr: #00a859;
+            --accent-cbe: #6f2c91;
+            --accent-bank: #0056b3;
+            --text-main: #f5f5f7;
+            --text-muted: #a0a0a8;
+            --font-display: 'Cinzel', serif;
+            --font-body: 'Plus Jakarta Sans', sans-serif;
+            --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            padding-bottom: 100px;
+        }
+
+        /* --- TOP NAVIGATION --- */
+        .navbar {
+            position: sticky;
+            top: 0;
+            background: rgba(15, 15, 17, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1.2rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            z-index: 100;
+        }
+
+        .brand-logo {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            text-decoration: none;
+            letter-spacing: 2px;
+        }
+
+        .brand-logo span { color: var(--text-main); }
+
+        .back-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover { color: var(--accent-gold); }
+
+        /* --- HEADER & CATEGORY TABS --- */
+        .menu-header {
+            padding: 3rem 5% 1.5rem 5%;
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .menu-header h1 {
+            font-family: var(--font-display);
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            margin-bottom: 0.5rem;
+        }
+
+        .menu-header p { color: var(--text-muted); font-size: 0.95rem; }
+
+        .category-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 0.8rem;
+            padding: 1.5rem 5%;
+            flex-wrap: wrap;
+            position: sticky;
+            top: 65px;
+            background: var(--bg-dark);
+            z-index: 90;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .tab-btn {
+            background: var(--bg-card);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-muted);
+            padding: 0.6rem 1.2rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active, .tab-btn:hover {
+            background: var(--accent-gold);
+            color: #000;
+            border-color: var(--accent-gold);
+        }
+
+        /* --- MENU GRID --- */
+        .menu-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 5%;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .menu-item {
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: border-color 0.3s;
+        }
+
+        .menu-item:hover { border-color: rgba(212, 175, 55, 0.4); }
+
+        .item-details { padding: 1.5rem; }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+
+        .item-title { font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; color: #fff; }
+        .item-price { color: var(--accent-gold); font-weight: 700; font-size: 1.1rem; white-space: nowrap; }
+        .item-desc { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.2rem; line-height: 1.5; }
+
+        .modifiers {
+            background: rgba(0,0,0,0.3);
+            padding: 0.8rem;
+            border-radius: 8px;
+            margin-bottom: 1.2rem;
+        }
+
+        .mod-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.4rem; display: block; }
+        
+        .mod-options { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .mod-radio { display: none; }
+        
+        .mod-btn {
+            background: var(--bg-elevated);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-muted);
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mod-radio:checked + .mod-btn {
+            background: rgba(212, 175, 55, 0.2);
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+        }
+
+        .add-btn {
+            width: 100%;
+            padding: 0.8rem;
+            background: rgba(255,255,255,0.05);
+            border: none;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .add-btn:hover { background: var(--accent-gold); color: #000; }
+
+        /* --- FLOATING CART BAR --- */
+        .floating-cart {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            width: 90%;
+            max-width: 600px;
+            background: #25d366;
+            color: #000;
+            padding: 1rem 1.5rem;
+            border-radius: 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 20px rgba(37, 211, 102, 0.4);
+            cursor: pointer;
+            transition: transform 0.4s var(--ease-out);
+            z-index: 1000;
+            font-weight: 700;
+        }
+
+        .floating-cart.visible { transform: translateX(-50%) translateY(0); }
+        .cart-info { display: flex; align-items: center; gap: 0.8rem; font-size: 1rem; }
+        .cart-badge { background: #000; color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
+
+        /* --- MODAL (ORDER GENERATOR) --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+
+        .modal {
+            background: var(--bg-card);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            width: 100%;
+            max-width: 520px;
+            border-radius: 16px;
+            padding: 2rem;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-title { font-family: var(--font-display); font-size: 1.5rem; color: var(--accent-gold); margin-bottom: 1.5rem; text-align: center; }
+
+        .form-group { margin-bottom: 1.2rem; }
+        .form-label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
+        .form-input, .form-select {
+            width: 100%;
+            padding: 0.8rem;
+            background: var(--bg-elevated);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #fff;
+            border-radius: 6px;
+            font-family: var(--font-body);
+        }
+
+        /* --- VIP & PAYMENT DYNAMIC STYLES --- */
+        .dynamic-box {
+            background: rgba(255,255,255,0.02);
+            border: 1px dashed rgba(255,255,255,0.15);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.2rem;
+        }
+
+        /* Interactive Payment Radio Grid */
+        .payment-radio-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.6rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .pay-radio { display: none; }
+
+        .pay-card {
+            background: var(--bg-elevated);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .pay-card:hover { border-color: rgba(255,255,255,0.3); }
+
+        .pay-radio:checked + .pay-card {
+            background: rgba(212, 175, 55, 0.15);
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+        }
+
+        .pay-icon { font-size: 1.2rem; }
+
+        /* QR Code & Payment Instructions Box */
+        .qr-display-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1.2rem;
+            text-align: center;
+            margin-bottom: 1.2rem;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .qr-header { font-weight: 700; font-size: 0.95rem; margin-bottom: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        
+        .qr-image-wrapper {
+            background: #fff;
+            padding: 0.8rem;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 0.8rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .qr-image { width: 140px; height: 140px; display: block; }
+        
+        .merchant-info { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1rem; }
+        .merchant-info strong { color: #fff; font-size: 0.95rem; }
+
+        .account-pill {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 0.6rem;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: var(--accent-gold);
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .copy-btn {
+            background: var(--accent-gold);
+            color: #000;
+            border: none;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: var(--font-body);
+        }
+
+        /* Telebirr Theme Override */
+        .theme-telebirr { border-color: rgba(0, 168, 89, 0.4); background: rgba(0, 168, 89, 0.05); }
+        .theme-telebirr .qr-header { color: #00e676; }
+
+        /* CBE Birr Theme Override */
+        .theme-cbe { border-color: rgba(169, 78, 217, 0.4); background: rgba(111, 44, 145, 0.08); }
+        .theme-cbe .qr-header { color: #d88aff; }
+
+        /* Bank Transfer Theme Override */
+        .theme-bank { border-color: rgba(0, 123, 255, 0.4); background: rgba(0, 86, 179, 0.08); }
+        .theme-bank .qr-header { color: #66b0ff; }
+
+        .cart-summary-list {
+            margin: 1.5rem 0;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 1rem 0;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .cart-item-row { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.6rem; color: #d0d0d5; }
+        .cart-item-row span:last-child { color: var(--accent-gold); font-weight: 600; }
+
+        .modal-total { display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: 700; margin-bottom: 1.5rem; color: #fff; }
+
+        .whatsapp-submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: #25d366;
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: transform 0.2s;
+        }
+
+        .whatsapp-submit-btn:hover { transform: scale(1.02); }
+        .close-modal { position: absolute; top: 1rem; right: 1.2rem; background: transparent; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <a href="index.html" class="brand-logo">YONAS <span>CHERCHER</span></a>
+        <a href="index.html" class="back-link">← Back to Lounge</a>
+    </nav>
+
+    <!-- Header -->
+    <header class="menu-header">
+        <h1>Live Order & Table Service</h1>
+        <p>Select your signature cuts, specify your doneness and spices, and send your order directly to our butchery via WhatsApp.</p>
+    </header>
+
+    <!-- Category Tabs -->
+    <div class="category-tabs">
+        <button class="tab-btn active" onclick="filterMenu('all', event)">All Menu</button>
+        <button class="tab-btn" onclick="filterMenu('butchery', event)">Raw Butchery (Kurt/Kitfo)</button>
+        <button class="tab-btn" onclick="filterMenu('grill', event)">From The Grill (Tibs)</button>
+        <button class="tab-btn" onclick="filterMenu('bar', event)">The Bar Cellar</button>
+    </div>
+
+    <!-- Menu Grid -->
+    <main class="menu-container">
+        <div class="menu-grid" id="menuGrid">
+            
+            <!-- Item 1: Special Marbled Kurt -->
+            <div class="menu-item" data-category="butchery">
+                <div class="item-details">
+                    <div class="item-header">
+                        <div class="item-title">Special Marbled Kurt</div>
+                        <div class="item-price">1,800 ETB</div>
+                    </div>
+                    <p class="item-desc">Hand-selected raw beef loin (1 Kg), deeply marbled, cut to order by our master butcher.</p>
+                    <div class="modifiers">
+                        <span class="mod-label">Select Spice Accompaniment</span>
+                        <div class="mod-options">
+                            <label><input type="radio" name="spice-kurt" class="mod-radio" value="Awaze & Mitmita" checked><span class="mod-btn">Awaze & Mitmita</span></label>
+                            <label><input type="radio" name="spice-kurt" class="mod-radio" value="Extra Mitmita"><span class="mod-btn">Extra Mitmita</span></label>
+                            <label><input type="radio" name="spice-kurt" class="mod-radio" value="Mild/No Spice"><span class="mod-btn">Mild</span></label>
+                        </div>
+                    </div>
+                </div>
+                <button class="add-btn" onclick="addItem('Special Marbled Kurt', 1800, 'spice-kurt')">+ Add to Order</button>
+            </div>
+
+            <!-- Item 2: Chercher Special Tibs -->
+            <div class="menu-item" data-category="grill">
+                <div class="item-details">
+                    <div class="item-header">
+                        <div class="item-title">Chercher Special Tibs</div>
+                        <div class="item-price">1,400 ETB</div>
+                    </div>
+                    <p class="item-desc">Sizzling prime beef tenderloin pan-roasted with rosemary, onions, and secret spiced herbal butter.</p>
+                    <div class="modifiers">
+                        <span class="mod-label">Select Preparation</span>
+                        <div class="mod-options">
+                            <label><input type="radio" name="prep-tibs" class="mod-radio" value="Medium Well" checked><span class="mod-btn">Medium Well</span></label>
+                            <label><input type="radio" name="prep-tibs" class="mod-radio" value="Juicy / Rare"><span class="mod-btn">Juicy / Rare</span></label>
+                            <label><input type="radio" name="prep-tibs" class="mod-radio" value="Well Done"><span class="mod-btn">Well Done</span></label>
+                        </div>
+                    </div>
+                </div>
+                <button class="add-btn" onclick="addItem('Chercher Special Tibs', 1400, 'prep-tibs')">+ Add to Order</button>
+            </div>
+
+            <!-- Item 3: Shekla Dereq Tibs -->
+            <div class="menu-item" data-category="grill">
+                <div class="item-details">
+                    <div class="item-header">
+                        <div class="item-title">Shekla Dereq Tibs</div>
+                        <div class="item-price">1,500 ETB</div>
+                    </div>
+                    <p class="item-desc">Crispy, dry-roasted beef strips served over hot clay coals with green chili and garlic.</p>
+                    <div class="modifiers">
+                        <span class="mod-label">Spice Level</span>
+                        <div class="mod-options">
+                            <label><input type="radio" name="prep-dereq" class="mod-radio" value="Normal Spicy" checked><span class="mod-btn">Normal Spicy</span></label>
+                            <label><input type="radio" name="prep-dereq" class="mod-radio" value="Extra Hot Chili"><span class="mod-btn">Extra Hot</span></label>
+                        </div>
+                    </div>
+                </div>
+                <button class="add-btn" onclick="addItem('Shekla Dereq Tibs', 1500, 'prep-dereq')">+ Add to Order</button>
+            </div>
+
+            <!-- Item 4: Special Kitfo -->
+            <div class="menu-item" data-category="butchery">
+                <div class="item-details">
+                    <div class="item-header">
+                        <div class="item-title">Special Chercher Kitfo</div>
+                        <div class="item-price">1,450 ETB</div>
+                    </div>
+                    <p class="item-desc">Finely minced lean beef warmed in spiced Kibbeh (butter), served with Kocho and Ayib.</p>
+                    <div class="modifiers">
+                        <span class="mod-label">Select Style</span>
+                        <div class="mod-options">
+                            <label><input type="radio" name="prep-kitfo" class="mod-radio" value="Tire (Raw)" checked><span class="mod-btn">Tire (Raw)</span></label>
+                            <label><input type="radio" name="prep-kitfo" class="mod-radio" value="Lebleb (Medium)"><span class="mod-btn">Lebleb</span></label>
+                            <label><input type="radio" name="prep-kitfo" class="mod-radio" value="Yebesele (Cooked)"><span class="mod-btn">Yebesele</span></label>
+                        </div>
+                    </div>
+                </div>
+                <button class="add-btn" onclick="addItem('Special Chercher Kitfo', 1450, 'prep-kitfo')">+ Add to Order</button>
+            </div>
+
+            <!-- Item 5: Top-Shelf Scotch Bottle -->
+            <div class="menu-item" data-category="bar">
+                <div class="item-details">
+                    <div class="item-header">
+                        <div class="item-title">Johnnie Walker Black Label</div>
+                        <div class="item-price">12,000 ETB</div>
+                    </div>
+                    <p class="item-desc">750ml Bottle served with ice bucket, soda water, and VIP lounge table setup.</p>
+                    <div class="modifiers">
+                        <span class="mod-label">Mixer Preference</span>
+                        <div class="mod-options">
+                            <label><input type="radio" name="prep-scotch" class="mod-radio" value="With Sparkling Water" checked><span class="mod-btn">Sparkling Water</span></label>
+                            <label><input type="radio" name="prep-scotch" class="mod-radio" value="With Coca-Cola"><span class="mod-btn">Coca-Cola</span></label>
+                        </div>
+                    </div>
+                </div>
+                <button class="add-btn" onclick="addItem('JW Black Label Bottle', 12000, 'prep-scotch')">+ Add to Order</button>
+            </div>
+
+            <!-- Item 6: Draught Beer -->
+            <div class="menu-item" data-category="bar">
+                <div class="item-details">
+                    <div class="item-header">
+                        <div class="item-title">Chilled Local Draught Beer</div>
+                        <div class="item-price">80 ETB</div>
+                    </div>
+                    <p class="item-desc">Freshly poured 500ml ice-cold St. George or Habesha draught beer.</p>
+                    <div class="modifiers">
+                        <span class="mod-label">Brand Selection</span>
+                        <div class="mod-options">
+                            <label><input type="radio" name="prep-beer" class="mod-radio" value="St. George Draught" checked><span class="mod-btn">St. George</span></label>
+                            <label><input type="radio" name="prep-beer" class="mod-radio" value="Habesha Draught"><span class="mod-btn">Habesha</span></label>
+                        </div>
+                    </div>
+                </div>
+                <button class="add-btn" onclick="addItem('Draught Beer', 80, 'prep-beer')">+ Add to Order</button>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Floating Cart Bar -->
+    <div class="floating-cart" id="floatingCart" onclick="openModal()">
+        <div class="cart-info">
+            <span class="cart-badge" id="cartCount">0</span>
+            <span>View WhatsApp Order</span>
+        </div>
+        <div id="cartTotal">0 ETB</div>
+    </div>
+
+    <!-- WhatsApp Checkout Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <button class="close-modal" onclick="closeModal()">×</button>
+            <h2 class="modal-title">Complete Your Order</h2>
+            
+            <div class="form-group">
+                <label class="form-label">Select Branch Location</label>
+                <select class="form-select" id="orderBranch">
+                    <option value="Kasanches Branch">Kasanches (1st Branch)</option>
+                    <option value="22 Branch">22 / Twenty-Two (2nd Branch)</option>
+                    <option value="Samet Branch">Samet / Summit (3rd Branch)</option>
+                    <option value="Bole Branch">Bole (4th Branch)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Your Name or Table #</label>
+                <input type="text" class="form-input" id="customerName" placeholder="e.g., Abebe / Table 4 (Mezzanine)">
+            </div>
+
+            <!-- Service & VIP Section -->
+            <div class="form-group">
+                <label class="form-label">Reservation & Table Setup</label>
+                <select class="form-select" id="orderType" onchange="toggleDynamicFields()">
+                    <option value="Dine-In (Table Service)">Standard Dine-In</option>
+                    <option value="VIP Lounge Reservation">VIP Lounge Reservation</option>
+                    <option value="Takeaway / Pick-up">Takeaway / Pick-up</option>
+                </select>
+            </div>
+
+            <div id="vipFields" class="dynamic-box" style="display: none;">
+                <div class="form-group" style="margin-bottom: 0.8rem;">
+                    <label class="form-label" style="color:#d4af37;">👑 Preferred VIP Lounge Zone</label>
+                    <select class="form-select" id="vipZone">
+                        <option value="Mezzanine VIP Lounge">Mezzanine VIP Lounge</option>
+                        <option value="Private Dining Room">Private Dining Room</option>
+                        <option value="Main Chef’s Table">Main Chef’s Table</option>
+                        <option value="Outdoor Garden Booth">Outdoor Garden Booth</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Estimated Arrival Time</label>
+                    <input type="time" class="form-input" id="arrivalTime">
+                </div>
+            </div>
+
+            <!-- Payment Method Radio Selection -->
+            <div class="form-group">
+                <label class="form-label">Select Payment Method</label>
+                <div class="payment-radio-grid" onchange="toggleDynamicFields()">
+                    <label>
+                        <input type="radio" name="paymentMethod" class="pay-radio" value="Telebirr" checked>
+                        <div class="pay-card"><span class="pay-icon">📲</span> Telebirr</div>
+                    </label>
+                    <label>
+                        <input type="radio" name="paymentMethod" class="pay-radio" value="CBE Birr">
+                        <div class="pay-card"><span class="pay-icon">🏛️</span> CBE Birr</div>
+                    </label>
+                    <label>
+                        <input type="radio" name="paymentMethod" class="pay-radio" value="Bank Transfer">
+                        <div class="pay-card"><span class="pay-icon">🏦</span> Bank Transfer</div>
+                    </label>
+                    <label>
+                        <input type="radio" name="paymentMethod" class="pay-radio" value="Pay on Arrival">
+                        <div class="pay-card"><span class="pay-icon">💳</span> Pay at Table</div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Telebirr Instant QR Box -->
+            <div id="telebirrBox" class="qr-display-box theme-telebirr">
+                <div class="qr-header"><span>📲</span> Scan Official Telebirr QR</div>
+                <div class="qr-image-wrapper">
+                    <!-- Dynamic QR via API pointing to Merchant Phone -->
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=telebirr%3A%2F%2Ftransfer%3Fphone%3D0925256424&color=000000" alt="Telebirr QR Code" class="qr-image">
+                </div>
+                <div class="merchant-info">
+                    Merchant Name: <strong>Yonas Chercher</strong><br>
+                    Direct Phone: <strong>+251 911219675</strong>
+                </div>
+                <div class="account-pill">
+                    <span>0911219675</span>
+                    <button class="copy-btn" onclick="copyToClipboard('0911219675', this)">COPY</button>
+                </div>
+                <input type="text" class="form-input" id="telebirrTxnId" placeholder="Enter Telebirr Txn ID (e.g., CDC651...)" style="margin-top:0.5rem;">
+            </div>
+
+            <!-- CBE Birr Instant QR Box -->
+            <div id="cbeBirrBox" class="qr-display-box theme-cbe" style="display: none;">
+                <div class="qr-header"><span>🏛️</span> CBE Birr Merchant Pay</div>
+                <div class="qr-image-wrapper">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=cbebirr%3A%2F%2Fpay%3Fmerchant%3D303521&color=000000" alt="CBE Birr QR Code" class="qr-image">
+                </div>
+                <div class="merchant-info">
+                    Merchant Code: <strong>303521</strong><br>
+                    Account Name: <strong>Yonas Chercher Lounge</strong>
+                </div>
+                <div class="account-pill">
+                    <span>303521</span>
+                    <button class="copy-btn" onclick="copyToClipboard('303521', this)">COPY</button>
+                </div>
+                <input type="text" class="form-input" id="cbeTxnId" placeholder="Enter CBE Birr Reference #">
+            </div>
+
+            <!-- Bank Transfer Details Box -->
+            <div id="bankTransferBox" class="qr-display-box theme-bank" style="display: none;">
+                <div class="qr-header"><span>🏦</span> Direct Bank Transfers</div>
+                <div class="merchant-info" style="text-align: left; margin-bottom: 0.8rem;">
+                    <strong>Commercial Bank of Ethiopia (CBE)</strong>
+                    <div class="account-pill" style="margin-top:0.3rem;">
+                        <span>1000234567890</span>
+                        <button class="copy-btn" onclick="copyToClipboard('1000234567890', this)">COPY</button>
+                    </div>
+                    <strong>Dashen Bank</strong>
+                    <div class="account-pill" style="margin-top:0.3rem; margin-bottom: 0;">
+                        <span>0123456789011</span>
+                        <button class="copy-btn" onclick="copyToClipboard('0123456789011', this)">COPY</button>
+                    </div>
+                </div>
+                <input type="text" class="form-input" id="bankTxnId" placeholder="Enter Bank Transfer Reference #">
+            </div>
+
+            <!-- Pay on Arrival Confirmation -->
+            <div id="payArrivalBox" class="dynamic-box" style="display: none; text-align: center; border-color: var(--accent-gold);">
+                <span style="font-size: 1.8rem; display: block; margin-bottom: 0.4rem;">🥂</span>
+                <strong style="color: var(--accent-gold); font-size: 0.95rem;">VIP Table Settlement</strong>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.4rem;">
+                    Your table is pre-authorized. You may settle your bill using Cash, Visa, Mastercard, or local POS terminals upon arrival or at the conclusion of your dining experience.
+                </p>
+            </div>
+
+            <div class="cart-summary-list" id="cartSummaryList">
+                <!-- Cart items populate here dynamically -->
+            </div>
+
+            <div class="modal-total">
+                <span>Total Amount:</span>
+                <span id="modalTotalDisplay">0 ETB</span>
+            </div>
+
+            <button class="whatsapp-submit-btn" onclick="dispatchWhatsAppOrder()">
+                <span>💬</span> Send Order via WhatsApp
+            </button>
+        </div>
+    </div>
+
+    <!-- JS Engine: Cart Management, UI Toggles & WhatsApp URL Compiler -->
+    <script>
+        let cart = [];
+
+        // Add Item to Cart Array
+        function addItem(name, price, radioName) {
+            const selectedMod = document.querySelector(`input[name="${radioName}"]:checked`).value;
+            const existingIndex = cart.findIndex(i => i.name === name && i.modifier === selectedMod);
+            
+            if (existingIndex > -1) {
+                cart[existingIndex].qty += 1;
+            } else {
+                cart.push({ name: name, price: price, modifier: selectedMod, qty: 1 });
+            }
+            updateCartUI();
+        }
+
+        // Update UI Elements (Floating Bar & Modal List)
+        function updateCartUI() {
+            const floatingCart = document.getElementById('floatingCart');
+            const cartCount = document.getElementById('cartCount');
+            const cartTotal = document.getElementById('cartTotal');
+            const modalTotalDisplay = document.getElementById('modalTotalDisplay');
+            const cartSummaryList = document.getElementById('cartSummaryList');
+
+            let totalQty = 0;
+            let totalCost = 0;
+            cartSummaryList.innerHTML = '';
+
+            cart.forEach((item, index) => {
+                totalQty += item.qty;
+                const itemCost = item.price * item.qty;
+                totalCost += itemCost;
+
+                cartSummaryList.innerHTML += `
+                    <div class="cart-item-row">
+                        <div>
+                            <strong>${item.qty}x ${item.name}</strong> <br>
+                            <small style="color:#888;">[${item.modifier}]</small>
+                        </div>
+                        <div>
+                            <span>${itemCost.toLocaleString()} ETB</span>
+                            <button onclick="removeItem(${index})" style="background:none;border:none;color:#ff4444;margin-left:8px;cursor:pointer;">×</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            cartCount.innerText = totalQty;
+            cartTotal.innerText = `${totalCost.toLocaleString()} ETB`;
+            modalTotalDisplay.innerText = `${totalCost.toLocaleString()} ETB`;
+
+            if (totalQty > 0) {
+                floatingCart.classList.add('visible');
+            } else {
+                floatingCart.classList.remove('visible');
+                closeModal();
+            }
+        }
+
+        // Remove Item from Cart
+        function removeItem(index) {
+            cart.splice(index, 1);
+            updateCartUI();
+        }
+
+        // Category Filter
+        function filterMenu(category, e) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            if (e && e.target) e.target.classList.add('active');
+
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.style.display = (category === 'all' || item.getAttribute('data-category') === category) ? 'flex' : 'none';
+            });
+        }
+
+        // Modal Controls
+        function openModal() { if (cart.length > 0) document.getElementById('modalOverlay').classList.add('active'); }
+        function closeModal() { document.getElementById('modalOverlay').classList.remove('active'); }
+
+        // Copy Account to Clipboard Helper
+        function copyToClipboard(text, btnElement) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btnElement.innerText;
+                btnElement.innerText = 'COPIED!';
+                btnElement.style.background = '#00e676';
+                setTimeout(() => {
+                    btnElement.innerText = originalText;
+                    btnElement.style.background = 'var(--accent-gold)';
+                }, 2000);
+            });
+        }
+
+        // Toggle Dynamic Fields (VIP & QR Payment Boxes)
+        function toggleDynamicFields() {
+            const orderType = document.getElementById('orderType').value;
+            const selectedPayment = document.querySelector('input[name="paymentMethod"]:checked').value;
+            
+            // Toggle VIP Box
+            document.getElementById('vipFields').style.display = (orderType === 'VIP Lounge Reservation') ? 'block' : 'none';
+
+            // Hide all payment boxes initially
+            document.getElementById('telebirrBox').style.display = 'none';
+            document.getElementById('cbeBirrBox').style.display = 'none';
+            document.getElementById('bankTransferBox').style.display = 'none';
+            document.getElementById('payArrivalBox').style.display = 'none';
+
+            // Reveal active payment box
+            if (selectedPayment === 'Telebirr') document.getElementById('telebirrBox').style.display = 'block';
+            else if (selectedPayment === 'CBE Birr') document.getElementById('cbeBirrBox').style.display = 'block';
+            else if (selectedPayment === 'Bank Transfer') document.getElementById('bankTransferBox').style.display = 'block';
+            else if (selectedPayment === 'Pay on Arrival') document.getElementById('payArrivalBox').style.display = 'block';
+        }
+
+        // WhatsApp Order Compiler
+        function dispatchWhatsAppOrder() {
+            const branch = document.getElementById('orderBranch').value;
+            const name = document.getElementById('customerName').value.trim() || 'Valued Client';
+            const orderType = document.getElementById('orderType').value;
+            const selectedPayment = document.querySelector('input[name="paymentMethod"]:checked').value;
+            
+            const restaurantPhone = "251911219675"; 
+
+            let message = `*NEW LIVE ORDER - YONAS CHERCHER* 🥩🔥\n`;
+            message += `-----------------------------------\n`;
+            message += `*Branch Location:* ${branch}\n`;
+            message += `*Customer/Table:* ${name}\n`;
+            message += `*Service Type:* ${orderType}\n`;
+
+            if (orderType === 'VIP Lounge Reservation') {
+                const zone = document.getElementById('vipZone').value;
+                const time = document.getElementById('arrivalTime').value || 'Immediate';
+                message += `*👑 VIP Zone:* ${zone}\n`;
+                message += `*⏰ Arrival Time:* ${time}\n`;
+            }
+
+            message += `-----------------------------------\n`;
+            message += `*Payment Method:* ${selectedPayment}\n`;
+
+            // Append specific Reference ID based on method
+            if (selectedPayment === 'Telebirr') {
+                const ref = document.getElementById('telebirrTxnId').value.trim() || 'Screenshot in chat';
+                message += `*📲 Telebirr Ref:* ${ref}\n`;
+            } else if (selectedPayment === 'CBE Birr') {
+                const ref = document.getElementById('cbeTxnId').value.trim() || 'Screenshot in chat';
+                message += `*🏛️ CBE Birr Ref:* ${ref}\n`;
+            } else if (selectedPayment === 'Bank Transfer') {
+                const ref = document.getElementById('bankTxnId').value.trim() || 'Screenshot in chat';
+                message += `*🏦 Bank Transfer Ref:* ${ref}\n`;
+            } else {
+                message += `*💳 Settlement:* Pay at Table / POS on Arrival\n`;
+            }
+
+            message += `-----------------------------------\n*ORDER SUMMARY:*\n`;
+
+            let grandTotal = 0;
+            cart.forEach(item => {
+                const itemTotal = item.price * item.qty;
+                grandTotal += itemTotal;
+                message += `▪️ *${item.qty}x ${item.name}* (${itemTotal.toLocaleString()} ETB)\n`;
+                message += `    _Prep/Spice: ${item.modifier}_\n`;
+            });
+
+            message += `-----------------------------------\n`;
+            message += `*GRAND TOTAL: ${grandTotal.toLocaleString()} ETB*\n`;
+            message += `-----------------------------------\n`;
+            message += `_Sent via Yonas Chercher Interactive Menu_`;
+
+            const encodedMessage = encodeURIComponent(message);
+            window.open(`https://wa.me/${restaurantPhone}?text=${encodedMessage}`, '_blank');
+        }
+    </script>
+</body>
+</html>
